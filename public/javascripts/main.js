@@ -13,8 +13,8 @@ tm.main(function() {
     var viewport = tm.display.CanvasElement().addChildTo(app.currentScene);
     viewport.stars = Array.range(0, 5000).map(function() {
         return {
-            x: -1000 + Math.random() * 31000,
-            y: -1000 + Math.random() * 31000,
+            x: -1000 + Math.random() * 11000,
+            y: -1000 + Math.random() * 11000,
             size: Math.random() * 5 + 0.1
         };
     });
@@ -154,8 +154,8 @@ tm.define("MyUnit", {
 
     init: function() {
         this.superInit(window.id, "hsl(220, 50%, 50%)");
-        this.x = Math.random() * 30000;
-        this.y = Math.random() * 30000;
+        this.x = Math.random() * 10000;
+        this.y = Math.random() * 10000;
         this.rotation = Math.random() * 360;
     }
 });
