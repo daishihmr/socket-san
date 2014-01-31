@@ -2,6 +2,7 @@ var app;
 var socket;
 var myUnit;
 var units = {};
+var score = 0;
 
 tm.main(function() {
     app = tm.display.CanvasApp("#app");
@@ -56,6 +57,43 @@ tm.main(function() {
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
         });
         bullets.data = allData.bullets;
+        allData.explosions.forEach(function(explosion) {
+            new Explosion(explosion.x, explosion.y, explosion.size).addChildTo(viewport);
+        });
+        allData.death.forEach(function(d) {
+            var target = units[d.id];
+            if (target !== undefined) {
+                target.remove();
+            }
+        });
+    });
+
+    socket.on("kill", function() {
+        score += 1;
+    });
+
+    socket.on("death", function() {
+        tm.display.Label("GAME OVER", 48)
+            .setFillStyle("red")
+            .setPosition(app.width/2, app.height/2)
+            .addChildTo(app.currentScene)
+            .tweener.set({
+                alpha: 0
+            }).to({
+                alpha: 1
+            }, 1000).call(function() {
+                var resultScene = tm.app.ResultScene({
+                    width: app.width,
+                    height: app.height,
+                    score: score*100,
+                    msg: "ドッグファイト！ソケットさん",
+                    url: window.location.origin
+                });
+                resultScene.on("nextscene", function() {
+                    window.location.href = window.location.origin;
+                });
+                app.replaceScene(resultScene);
+            });
     });
 
     var timer = tm.display.CanvasElement().addChildTo(app.currentScene);
@@ -104,8 +142,6 @@ tm.define("Unit", {
         f.update = function() {
             this.position.add(this.v);
             this.alpha *= 0.8;
-            // this.scaleX *= 0.8;
-            // this.scaleY *= 0.8;
             if (this.alpha < 0.001) this.remove();
         }
     }
@@ -155,5 +191,35 @@ tm.define("Bullets", {
             canvas.fillCircle(0, 0, 30);
             canvas.restore();
         });
+    }
+});
+
+tm.define("Explosion", {
+    superClass: "tm.display.RectangleShape",
+
+    init: function(x, y, size) {
+        console.log(size)
+        this.superInit(size*2, size*2, {
+            fillStyle: tm.graphics.RadialGradient(size, size, 0, size, size, size).addColorStopList([
+                { offset: 0.0, color: "rgba(255, 255, 255, 0)"},
+                { offset: 0.2, color: "rgba(255, 255, 255, 0)"},
+                { offset: 0.9, color: "rgba(255, 255, 255, 1)"},
+                { offset: 1.0, color: "rgba(255, 255, 255, 0)"}
+            ]).toStyle(),
+            strokeStyle: "transparent"
+        });
+        this.setPosition(x, y);
+        this.tweener.clear().set({
+            scaleX: 0.1,
+            scaleY: 0.1,
+            alpha: 1
+        }).to({
+            scaleX: 1,
+            scaleY: 1,
+            alpha: 0
+        }, size, "easeOutQuad")
+        .call(function() {
+            this.remove();
+        }.bind(this));
     }
 });

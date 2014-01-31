@@ -3,9 +3,12 @@ var SC_SIZE = 3000;
 var units = [];
 var bullets = [];
 var explosions = [];
+var death = [];
 
 var Unit = function(socket, data) {
     this.socket = socket;
+
+    this.hp = 10;
 
     this.id = data.id;
     this.x = data.x;
@@ -36,6 +39,8 @@ var Unit = function(socket, data) {
 };
 
 Unit.prototype.update = function() {
+    if (this.hp <= 0) return;
+
     if (this.keyboard.left) {
         this.rotation -= 5;
     } else if (this.keyboard.right) {
@@ -45,11 +50,11 @@ Unit.prototype.update = function() {
     var cos = Math.cos((this.rotation-90)*Math.PI/180);
     var sin = Math.sin((this.rotation-90)*Math.PI/180);
     if (this.keyboard.up) {
-        this.velocity.x += cos*0.3;
-        this.velocity.y += sin*0.3;
+        this.velocity.x += cos*0.2;
+        this.velocity.y += sin*0.2;
     } else if (this.keyboard.down) {
-        this.velocity.x += cos*-0.3;
-        this.velocity.y += sin*-0.3;
+        this.velocity.x += cos*-0.2;
+        this.velocity.y += sin*-0.2;
     }
 
     if (this.keyboard.z && this.heat < 0) {
@@ -84,14 +89,30 @@ Unit.prototype.update = function() {
 Unit.update = function(unit) { unit.update(); };
 
 Unit.prototype.damage = function(bullet) {
-    this.velocity.x += bullet.dx*0.5;
-    this.velocity.y += bullet.dy*0.5;
+    this.velocity.x += bullet.dx*0.1;
+    this.velocity.y += bullet.dy*0.1;
+    this.hp -= 1;
 
     explosions.push({
         x: bullet.x,
         y: bullet.y,
-        size: 10
+        size: this.hp > 0 ? 200: 800
     });
+    if (this.hp <= 0) {
+        this.socket.emit('death');
+        var idx = units.indexOf(this);
+        if (idx !== -1) units.splice(idx, 1);
+        death.push({
+            id: this.id
+        });
+
+        for (var i = 0; i < units.length; i++) {
+            if (units[i].id === bullet.ownerId) {
+                units[i].socket.emit('kill');
+                break;
+            }
+        }
+    }
 };
 
 Unit.prototype.publish = function() {
@@ -163,11 +184,16 @@ var updateWorld = function() {
 
     var allData = {
         units: units.map(Unit.publish),
-        bullets: bullets.map(Bullet.publish)
+        bullets: bullets.map(Bullet.publish),
+        explosions: explosions,
+        death: death
     };
     units.forEach(function(unit) {
         unit.socket.emit('tick', allData);
     });
+
+    explosions.splice(0);
+    death.splice(0);
 
     setTimeout(updateWorld, 1000/60);
 };
