@@ -79,6 +79,7 @@ tm.main(function() {
             if (target !== undefined) {
                 target.remove();
             }
+            units[d.id] = undefined;
         });
     });
 
