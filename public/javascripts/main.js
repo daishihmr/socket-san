@@ -31,7 +31,7 @@ tm.main(function() {
     myUnit = new MyUnit(window.id);
     myUnit.addChildTo(viewport);
 
-    socket = io.connect("http://localhost:3000");
+    socket = io.connect("/");
     socket.on("connect", function() {
         console.log("onconnect");
         this.emit("join", {
