@@ -29,6 +29,20 @@ tm.main(function() {
         })
     };
 
+    var playercount = tm.display.Label("0人が参加中", 40)
+        .setAlign("left")
+        .setBaseline("top")
+        .setPosition(0, 0)
+        .setFillStyle("white")
+        .addChildTo(app.currentScene);
+    playercount.update = function() {
+        var pc = 0;
+        for (var id in units) if (units.hasOwnProperty(id)) {
+            pc++;
+        }
+        this.text = pc + "人が参加中";
+    };
+
     myUnit = new MyUnit(window.id);
     myUnit.addChildTo(viewport);
 
