@@ -1,4 +1,4 @@
-var SC_SIZE = 3000;
+var SC_SIZE = 30000;
 
 var units = [];
 var bullets = [];

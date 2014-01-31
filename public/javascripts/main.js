@@ -11,11 +11,11 @@ tm.main(function() {
     app.fps = 30;
 
     var viewport = tm.display.CanvasElement().addChildTo(app.currentScene);
-    viewport.stars = Array.range(0, 10000).map(function() {
+    viewport.stars = Array.range(0, 5000).map(function() {
         return {
-            x: -10000 + Math.random() * 20000,
-            y: -10000 + Math.random() * 20000,
-            size: Math.random() * 2 + 0.1
+            x: -1000 + Math.random() * 31000,
+            y: -1000 + Math.random() * 31000,
+            size: Math.random() * 5 + 0.1
         };
     });
     viewport.update = function() {
@@ -23,8 +23,8 @@ tm.main(function() {
         this.y += (-myUnit.y + app.height/2 - this.y) * 0.1;
     };
     viewport.draw = function(canvas) {
+        canvas.fillStyle = "rgba(255,255,255,0.5)";
         this.stars.forEach(function(star) {
-            canvas.fillStyle = "white";
             canvas.fillCircle(star.x, star.y, star.size);
         })
     };
@@ -154,8 +154,8 @@ tm.define("MyUnit", {
 
     init: function() {
         this.superInit(window.id, "hsl(220, 50%, 50%)");
-        this.x = Math.random() * app.width;
-        this.y = Math.random() * app.height;
+        this.x = Math.random() * 30000;
+        this.y = Math.random() * 30000;
         this.rotation = Math.random() * 360;
     }
 });
