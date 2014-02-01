@@ -1,3 +1,5 @@
+var SC_SIZE = 30000;
+
 var app;
 var socket;
 var myUnit;
@@ -13,8 +15,8 @@ tm.main(function() {
     var viewport = tm.display.CanvasElement().addChildTo(app.currentScene);
     viewport.stars = Array.range(0, 5000).map(function() {
         return {
-            x: -1000 + Math.random() * 11000,
-            y: -1000 + Math.random() * 11000,
+            x: Math.random() * SC_SIZE,
+            y: Math.random() * SC_SIZE,
             size: Math.random() * 5 + 0.1
         };
     });
@@ -28,6 +30,8 @@ tm.main(function() {
             canvas.fillCircle(star.x, star.y, star.size);
         })
     };
+
+    var lader = new Lader().setPosition(app.width - 110, 110).addChildTo(app.currentScene);
 
     var playercount = tm.display.Label("0人が参加中", 40)
         .setAlign("left")
@@ -88,27 +92,7 @@ tm.main(function() {
     });
 
     socket.on("death", function() {
-        tm.display.Label("GAME OVER", 48)
-            .setFillStyle("red")
-            .setPosition(app.width/2, app.height/2)
-            .addChildTo(app.currentScene)
-            .tweener.set({
-                alpha: 0
-            }).to({
-                alpha: 1
-            }, 1000).call(function() {
-                var resultScene = tm.app.ResultScene({
-                    width: app.width,
-                    height: app.height,
-                    score: score*100,
-                    msg: "ドッグファイト！ソケットさん",
-                    url: window.location.origin
-                });
-                resultScene.on("nextscene", function() {
-                    window.location.href = window.location.origin;
-                });
-                app.replaceScene(resultScene);
-            });
+        gameover();
     });
 
     var timer = tm.display.CanvasElement().addChildTo(app.currentScene);
@@ -119,12 +103,50 @@ tm.main(function() {
             down: kb.getKey("down"),
             left: kb.getKey("left"),
             right: kb.getKey("right"),
-            z: kb.getKey("z")
+            z: kb.getKey("space") || kb.getKey("z")
         });
+
+        if (kb.getKeyDown("escape")) {
+            gameover();
+        }
     };
 
     app.run();
+
+    var lbl;
+    lbl = tm.display.Label("カーソルキーで移動", 48).setPosition(app.width/2, app.height/2-200).addChildTo(app.currentScene);
+    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+
+    lbl = tm.display.Label("スペースキーで攻撃", 48).setPosition(app.width/2, app.height/2).addChildTo(app.currentScene);
+    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+
+    lbl = tm.display.Label("ESCキーで終了", 48).setPosition(app.width/2, app.height/2+200).addChildTo(app.currentScene);
+    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
 });
+
+var gameover = function() {
+    tm.display.Label("GAME OVER", 48)
+        .setFillStyle("red")
+        .setPosition(app.width/2, app.height/2)
+        .addChildTo(app.currentScene)
+        .tweener.set({
+            alpha: 0
+        }).to({
+            alpha: 1
+        }, 1000).call(function() {
+            var resultScene = tm.app.ResultScene({
+                width: app.width,
+                height: app.height,
+                score: score*100,
+                msg: "ドッグファイト！ソケットさん",
+                url: window.location.origin
+            });
+            resultScene.on("nextscene", function() {
+                window.location.href = window.location.origin;
+            });
+            app.replaceScene(resultScene);
+        });
+};
 
 tm.define("Unit", {
     superClass: "tm.display.CanvasElement",
@@ -169,8 +191,8 @@ tm.define("MyUnit", {
 
     init: function() {
         this.superInit(window.id, "hsl(220, 50%, 50%)");
-        this.x = Math.random() * 10000;
-        this.y = Math.random() * 10000;
+        this.x = Math.random() * SC_SIZE;
+        this.y = Math.random() * SC_SIZE;
         this.rotation = Math.random() * 360;
     }
 });
@@ -206,6 +228,29 @@ tm.define("Bullets", {
             canvas.fillCircle(0, 0, 30);
             canvas.restore();
         });
+    }
+});
+
+tm.define("Lader", {
+    superClass: "tm.display.CanvasElement",
+
+    data: null,
+
+    init: function() {
+        this.superInit();
+        this.data = [];
+        this.blendMode = "lighter";
+    },
+
+    draw: function(canvas) {
+        canvas.fillStyle = "hsla(220, 50%, 80%, 0.1)";
+        canvas.fillRect(-100, -100, 200, 200);
+
+        for (var id in units) if (units.hasOwnProperty(id)) {
+            var u = units[id];
+            canvas.fillStyle = u.id === window.id ? "aqua" : "red";
+            canvas.fillRect(-100 + u.x*(200/SC_SIZE), -100 + u.y*(200/SC_SIZE), 2, 2);
+        };
     }
 });
 
