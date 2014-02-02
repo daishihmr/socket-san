@@ -126,6 +126,7 @@ tm.main(function() {
                 target = new Unit(unit.id, unit.type).addChildTo(viewport);
             }
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
+            target.hp = unit.hp;
         });
         bullets.data = allData.bullets;
         allData.explosions.forEach(function(explosion) {
@@ -218,9 +219,11 @@ tm.define("Unit", {
     superClass: "tm.display.CanvasElement",
 
     id: null,
+    hp: 0,
 
     init: function(id, type, color) {
         this.superInit();
+        this.blendMode = "lighter";
 
         this.type = type;
         this.id = id;
@@ -240,6 +243,26 @@ tm.define("Unit", {
                 lineWidth: 5
             }).setBlendMode("lighter").addChildTo(this);
         }
+
+        this.hp = 10;
+
+        var that = this;
+        var hpRing = tm.display.CanvasElement().setBlendMode("lighter").addChildTo(this);
+        if (this.type == "pc") hpRing.scaleX = 1/0.6;
+        hpRing.draw = function(canvas) {
+            canvas.strokeStyle = "hsla(220, 80%, 80%, 0.5)";
+            canvas.linecap = "round";
+
+            canvas.lineWidth = 2;
+            canvas.context.beginPath();
+            canvas.context.arc(0, 0, 60, 0, Math.PI*2, false);
+            canvas.stroke();
+
+            canvas.lineWidth = 5;
+            canvas.context.beginPath();
+            canvas.context.arc(0, 0, 60, Math.PI*-0.5, Math.PI*-0.5 + that.hp/10 * Math.PI*2, false);
+            canvas.stroke();
+        };
     },
 
     update: function() {

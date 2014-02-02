@@ -86,6 +86,9 @@ AIUnit.prototype.update = function(frame) {
     unitJs.Unit.prototype.update.call(this, frame);
 };
 
+AIUnit.prototype.recoverHp = function() {
+};
+
 exports.AIUnit = AIUnit;
 
 exports.aiUnitNumber = function() {

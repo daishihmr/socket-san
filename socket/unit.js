@@ -47,6 +47,8 @@ Unit.prototype.initialize = function(socket, data) {
 Unit.prototype.update = function(frame) {
     if (this.hp <= 0) return;
 
+    this.recoverHp();
+
     if (this.keyboard.left) {
         this.rotation -= 5;
     } else if (this.keyboard.right) {
@@ -93,6 +95,10 @@ Unit.prototype.update = function(frame) {
     }
 };
 
+Unit.prototype.recoverHp = function() {
+    this.hp = Math.min(10, this.hp + 0.001);
+};
+
 Unit.prototype.damage = function(bullet) {
     this.velocity.x += bullet.dx*0.1;
     this.velocity.y += bullet.dy*0.1;
@@ -126,7 +132,8 @@ Unit.prototype.publish = function() {
         id: this.id,
         x: this.x,
         y: this.y,
-        rotation: this.rotation
+        rotation: this.rotation,
+        hp: this.hp
     };
 };
 Unit.publish = function(unit) { return unit.publish(); };
