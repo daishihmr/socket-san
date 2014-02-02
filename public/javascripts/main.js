@@ -1,4 +1,4 @@
-var SC_SIZE = 30000;
+var SC_SIZE = 20000;
 
 var app;
 var socket;
@@ -12,28 +12,79 @@ tm.main(function() {
     app.background = "rgba(0, 0, 0, 0.3)";
     app.fps = 30;
 
-    var viewport = tm.display.CanvasElement().addChildTo(app.currentScene);
-    viewport.stars = Array.range(0, 5000).map(function() {
+    var viewport = tm.app.Object2D().addChildTo(app.currentScene);
+    viewport.update = function() {
+        var dx = (-myUnit.x + app.width/2 - this.x);
+        var dy = (-myUnit.y + app.height/2 - this.y);
+        if (dx < -SC_SIZE*0.5 || SC_SIZE*0.5 < dx) {
+            this.x += dx;
+        } else {
+            this.x += dx * 0.1;
+        }
+        if (dy < -SC_SIZE*0.5 || SC_SIZE*0.5 < dy) {
+            this.y += dy;
+        } else {
+            this.y += dy * 0.1;
+        }
+    };
+
+    var stars0 = Array.range(0, 20).map(function() {
         return {
-            x: Math.random() * SC_SIZE,
-            y: Math.random() * SC_SIZE,
+            x: Math.random() * app.width,
+            y: Math.random() * app.height,
             size: Math.random() * 5 + 0.1
         };
     });
-    viewport.update = function() {
-        this.x += (-myUnit.x + app.width/2 - this.x) * 0.1;
-        this.y += (-myUnit.y + app.height/2 - this.y) * 0.1;
-    };
-    viewport.draw = function(canvas) {
-        canvas.fillStyle = "rgba(255,255,255,0.5)";
-        this.stars.forEach(function(star) {
-            canvas.fillCircle(star.x, star.y, star.size);
-        })
+    var stars1 = Array.range(0, 20).map(function() {
+        return {
+            x: Math.random() * app.width,
+            y: Math.random() * app.height,
+            size: Math.random() * 5 + 0.1
+        };
+    });
+    var stars2 = Array.range(0, 20).map(function() {
+        return {
+            x: Math.random() * app.width,
+            y: Math.random() * app.height,
+            size: Math.random() * 5 + 0.1
+        };
+    });
+    var background = tm.display.CanvasElement().addChildTo(app.currentScene);
+    background.draw = function(canvas) {
+        var x = viewport.x % app.width;
+        var y = viewport.y % app.height;
+        canvas.fillStyle = "rgba(255,255,255,0.6)";
+        stars0.forEach(function(star) {
+            canvas.fillCircle(star.x+x, star.y+y, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y, star.size);
+            canvas.fillCircle(star.x+x, star.y+y+app.height, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y+app.height, star.size);
+        });
+
+        x = (viewport.x*0.75) % app.width;
+        y = (viewport.y*0.75) % app.height;
+        canvas.fillStyle = "rgba(255,255,255,0.4)";
+        stars1.forEach(function(star) {
+            canvas.fillCircle(star.x+x, star.y+y, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y, star.size);
+            canvas.fillCircle(star.x+x, star.y+y+app.height, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y+app.height, star.size);
+        });
+
+        x = (viewport.x*0.5) % app.width;
+        y = (viewport.y*0.5) % app.height;
+        canvas.fillStyle = "rgba(255,255,255,0.2)";
+        stars2.forEach(function(star) {
+            canvas.fillCircle(star.x+x, star.y+y, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y, star.size);
+            canvas.fillCircle(star.x+x, star.y+y+app.height, star.size);
+            canvas.fillCircle(star.x+x+app.width, star.y+y+app.height, star.size);
+        });
     };
 
     var lader = new Lader().setPosition(app.width - 110, 110).addChildTo(app.currentScene);
 
-    var playercount = tm.display.Label("0人が参加中", 40)
+    var playercount = tm.display.Label(" ", 40)
         .setAlign("left")
         .setBaseline("top")
         .setPosition(0, 0)
@@ -41,13 +92,15 @@ tm.main(function() {
         .addChildTo(app.currentScene);
     playercount.update = function() {
         var pc = 0;
+        var npc = 0;
         for (var id in units) if (units.hasOwnProperty(id)) {
-            pc++;
+            if (units[id].type == "pc") pc++;
+            else npc++;
         }
-        this.text = pc + "人が参加中";
+        this.text = pc + "人が参加中 + " + npc + "機のNPC";
     };
 
-    myUnit = new MyUnit(window.id);
+    myUnit = new MyUnit();
     myUnit.addChildTo(viewport);
 
     socket = io.connect("/");
@@ -70,7 +123,7 @@ tm.main(function() {
         allData.units.forEach(function(unit) {
             var target = units[unit.id];
             if (target === undefined) {
-                target = new Unit(unit.id).addChildTo(viewport);
+                target = new Unit(unit.id, unit.type).addChildTo(viewport);
             }
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
         });
@@ -89,6 +142,19 @@ tm.main(function() {
 
     socket.on("kill", function() {
         score += 1;
+    });
+
+    socket.on("hit", function() {
+        var l = tm.display.Label("HIT!!", 100)
+            .setFillStyle("red")
+            .setPosition(app.width/2, app.height)
+            .setBaseline("bottom")
+            .addChildTo(app.currentScene);
+        l.fontStyle = "italic bold {fontSize}px {fontFamily}".format(l);
+        l.update = function(app) {
+            this.visible = app.frame%2 === 0;
+        };
+        l.tweener.to({alpha:0}, 1000).call(function() { this.remove() }.bind(l));
     });
 
     socket.on("death", function() {
@@ -153,18 +219,27 @@ tm.define("Unit", {
 
     id: null,
 
-    init: function(id, color) {
+    init: function(id, type, color) {
         this.superInit();
-        this.scaleX = 0.6;
 
+        this.type = type;
         this.id = id;
         units[id] = this;
 
-        tm.display.TriangleShape(50, 50, {
-            strokeStyle: color || "hsl(20, 50%, 50%)",
-            fillStyle: "transparent",
-            lineWidth: 5
-        }).setBlendMode("lighter").addChildTo(this);
+        if (this.type == "pc") {
+            this.scaleX = 0.6;
+            tm.display.TriangleShape(50, 50, {
+                strokeStyle: color || "hsl(20, 50%, 50%)",
+                fillStyle: "transparent",
+                lineWidth: 5
+            }).setBlendMode("lighter").addChildTo(this);
+        } else {
+            tm.display.RectangleShape(50, 50, {
+                strokeStyle: "hsl(0, 50%, 50%)",
+                fillStyle: "transparent",
+                lineWidth: 5
+            }).setBlendMode("lighter").addChildTo(this);
+        }
     },
 
     update: function() {
@@ -190,7 +265,7 @@ tm.define("MyUnit", {
     heat: 0,
 
     init: function() {
-        this.superInit(window.id, "hsl(220, 50%, 50%)");
+        this.superInit(window.id, "pc", "hsl(220, 50%, 50%)");
         this.x = Math.random() * SC_SIZE;
         this.y = Math.random() * SC_SIZE;
         this.rotation = Math.random() * 360;
@@ -231,26 +306,48 @@ tm.define("Bullets", {
     }
 });
 
+var LADER_RADIUS_MAX = 7000;
 tm.define("Lader", {
     superClass: "tm.display.CanvasElement",
 
-    data: null,
+    radius: 7000,
 
     init: function() {
         this.superInit();
-        this.data = [];
         this.blendMode = "lighter";
+        this.lineAngle = 0;
+    },
+
+    update: function() {
+        this.lineAngle += 0.1;
     },
 
     draw: function(canvas) {
-        canvas.fillStyle = "hsla(220, 50%, 80%, 0.1)";
-        canvas.fillRect(-100, -100, 200, 200);
+        canvas.fillStyle = "hsla(220, 50%, 50%, 0.2)";
+        canvas.strokeStyle = "hsla(100, 50%, 70%, 0.05)";
+        canvas.lineWidth = 1;
+
+        canvas.fillCircle(0, 0, this.radius * 100/LADER_RADIUS_MAX);
+        canvas.strokeRect(-100, -100, 200, 200);
+
+        for (var i = 0; i < 5; i++) {
+            canvas.strokeStyle = "hsla(100, 50%, 70%, " + (0.05*i) + ")";
+            canvas.drawLine(0, 0, Math.cos(this.lineAngle+i*0.05)*100, Math.sin(this.lineAngle+i*0.05)*100);
+        }
+
+        var rx = Math.max(-100, -myUnit.x * 100/LADER_RADIUS_MAX);
+        var ry = Math.max(-100, -myUnit.y * 100/LADER_RADIUS_MAX);
+        var rw = Math.min(100-rx, ((SC_SIZE - myUnit.x) * 100/LADER_RADIUS_MAX) - rx);
+        var rh = Math.min(100-ry, ((SC_SIZE - myUnit.y) * 100/LADER_RADIUS_MAX) - ry);
+        canvas.strokeRect(rx, ry, rw, rh);
 
         for (var id in units) if (units.hasOwnProperty(id)) {
             var u = units[id];
             canvas.fillStyle = u.id === window.id ? "aqua" : "red";
-            canvas.fillRect(-100 + u.x*(200/SC_SIZE), -100 + u.y*(200/SC_SIZE), 2, 2);
-        };
+            if ((myUnit.x-u.x)*(myUnit.x-u.x) + (myUnit.y-u.y)*(myUnit.y-u.y) < this.radius*this.radius) {
+                canvas.fillRect((u.x-myUnit.x) * 100 / this.radius - 2, (u.y-myUnit.y) * 100 / this.radius - 2, 4, 4);
+            }
+        }
     }
 });
 
@@ -258,7 +355,6 @@ tm.define("Explosion", {
     superClass: "tm.display.RectangleShape",
 
     init: function(x, y, size) {
-        console.log(size)
         this.superInit(size*2, size*2, {
             fillStyle: tm.graphics.RadialGradient(size, size, 0, size, size, size).addColorStopList([
                 { offset: 0.0, color: "rgba(255, 255, 255, 0)"},
