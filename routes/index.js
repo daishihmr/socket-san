@@ -1,7 +1,7 @@
 var uuid = require('uuid');
 
 exports.index = function(req, res) {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'ドッグファイト！ソケットさん' });
 };
 
 exports.id = function(req, res) {
