@@ -206,7 +206,8 @@ var gameover = function() {
                 height: app.height,
                 score: score*100,
                 msg: "ドッグファイト！ソケットさん",
-                url: window.location.origin
+                url: window.location.origin,
+                hashtags: "dev7jp"
             });
             resultScene.on("nextscene", function() {
                 window.location.href = window.location.origin;
