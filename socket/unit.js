@@ -59,8 +59,8 @@ Unit.prototype.update = function(frame) {
         this.velocity.x += cos*0.2;
         this.velocity.y += sin*0.2;
     } else if (this.keyboard.down) {
-        this.velocity.x += cos*-0.2;
-        this.velocity.y += sin*-0.2;
+        this.velocity.x += cos*-0.05;
+        this.velocity.y += sin*-0.05;
     }
 
     if (this.keyboard.z && this.heat < 0) {

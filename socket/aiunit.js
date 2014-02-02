@@ -34,10 +34,14 @@ AIUnit.prototype.initialize = function() {
         rotation: Math.random() * 360,
     });
 
+    this.age = -1;
+
     console.log("AIUnit#initialize");
 };
 
 AIUnit.prototype.update = function(frame) {
+    this.age += 1;
+
     var target = null;
     var tarDist = -1;
     for (var i = 0; i < unitJs.units.length; i++) {
@@ -58,17 +62,22 @@ AIUnit.prototype.update = function(frame) {
     while(d < -180) d += 360;
     while(180 <= d) d -= 360;
 
-    if (d < 0) {
-        this.keyboard.left = true;
-        this.keyboard.right = false;
+    if (frame % 2 === 0) {
+        if (d < 0) {
+            this.keyboard.left = true;
+            this.keyboard.right = false;
+        } else {
+            this.keyboard.left = false;
+            this.keyboard.right = true;
+        }
     } else {
         this.keyboard.left = false;
-        this.keyboard.right = true;
+        this.keyboard.right = false;
     }
 
     this.keyboard.up = true;
 
-    if (tarDist < 800*800 && Math.floor(frame/50) % 10 === 0) {
+    if (tarDist < 800*800 && Math.floor(this.age/33) % 10 === 0) {
         this.keyboard.z = true;
     } else {
         this.keyboard.z = false;
@@ -78,3 +87,11 @@ AIUnit.prototype.update = function(frame) {
 };
 
 exports.AIUnit = AIUnit;
+
+exports.aiUnitNumber = function() {
+    var npc = 0;
+    for (var i = 0; i < unitJs.units.length; i++) {
+        if (unitJs.units[i].type == "npc") npc++;
+    }
+    return npc;
+};
