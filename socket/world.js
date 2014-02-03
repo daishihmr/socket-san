@@ -8,9 +8,9 @@ var explosions = [];
 var death = [];
 
 var genNpc = function() {
-    if (aiunitJs.aiUnitNumber() > 5) return;
+    if (aiunitJs.aiUnitNumber() >= 5) return;
     var pcn = unitJs.pcUnitNumber();
-    if ((0 < pcn && frame % 1000 === 0) || (pcn === 1 && frame % 500 === 0)) {
+    if ((0 < pcn && frame % 2000 === 0) || (pcn === 1 && frame % 1000 === 0)) {
         new aiunitJs.AIUnit().initialize();
     }
 };

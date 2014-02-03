@@ -259,7 +259,7 @@ tm.define("Unit", {
             canvas.context.arc(0, 0, 60, 0, Math.PI*2, false);
             canvas.stroke();
 
-            canvas.lineWidth = 5;
+            canvas.lineWidth = 8;
             canvas.context.beginPath();
             canvas.context.arc(0, 0, 60, Math.PI*-0.5, Math.PI*-0.5 + that.hp/10 * Math.PI*2, false);
             canvas.stroke();
@@ -348,11 +348,9 @@ tm.define("Lader", {
 
     draw: function(canvas) {
         canvas.fillStyle = "hsla(220, 50%, 50%, 0.2)";
-        canvas.strokeStyle = "hsla(100, 50%, 70%, 0.05)";
         canvas.lineWidth = 1;
 
         canvas.fillCircle(0, 0, this.radius * 100/LADER_RADIUS_MAX);
-        canvas.strokeRect(-100, -100, 200, 200);
 
         for (var i = 0; i < 5; i++) {
             canvas.strokeStyle = "hsla(100, 50%, 70%, " + (0.05*i) + ")";
@@ -363,7 +361,9 @@ tm.define("Lader", {
         var ry = Math.max(-100, -myUnit.y * 100/LADER_RADIUS_MAX);
         var rw = Math.min(100-rx, ((SC_SIZE - myUnit.x) * 100/LADER_RADIUS_MAX) - rx);
         var rh = Math.min(100-ry, ((SC_SIZE - myUnit.y) * 100/LADER_RADIUS_MAX) - ry);
+        canvas.strokeStyle = "white";
         canvas.strokeRect(rx, ry, rw, rh);
+        canvas.strokeRect(-100, -100, 200, 200);
 
         for (var id in units) if (units.hasOwnProperty(id)) {
             var u = units[id];
