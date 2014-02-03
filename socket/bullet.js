@@ -8,7 +8,7 @@ var Bullet = function(data) {
     this.y = data.y;
     this.dx = data.dx;
     this.dy = data.dy;
-    this.age = 400;
+    this.age = 80;
 
     bullets.push(this);
 };
@@ -24,7 +24,7 @@ Bullet.prototype.update = function(frame) {
     var copied = [].concat(unitJs.units);
     copied.forEach(function(unit) {
         if (this.owner === unit) return;
-        if ((unit.x - this.x)*(unit.x - this.x) + (unit.y - this.y)*(unit.y - this.y) < 30*30) {
+        if ((unit.x - this.x)*(unit.x - this.x) + (unit.y - this.y)*(unit.y - this.y) < 50*50) {
             this.remove();
             unit.damage(this);
             this.owner.socket.emit("hit");

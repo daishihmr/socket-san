@@ -81,25 +81,20 @@ AIUnit.prototype.update = function(frame) {
     while(d < -180) d += 360;
     while(180 <= d) d -= 360;
 
-    if (frame % 2 === 0) {
-        if (d < 0) {
-            this.keyboard.left = true;
-            this.keyboard.right = false;
-        } else {
-            this.keyboard.left = false;
-            this.keyboard.right = true;
-        }
+    if (d < 0) {
+        this.keyboard.left = true;
+        this.keyboard.right = false;
     } else {
         this.keyboard.left = false;
-        this.keyboard.right = false;
+        this.keyboard.right = true;
     }
 
-    this.keyboard.up = true;
-
     var shotStartDistance = this.aiPersonality === 0 ? 800 : 2000;
-    if (tarDist < shotStartDistance*shotStartDistance && Math.floor(this.age/33) % 10 === 0) {
+    if (tarDist < shotStartDistance*shotStartDistance && Math.floor(this.age/11) % 10 === 0) {
+        this.keyboard.up = frame%2 === 0;
         this.keyboard.z = true;
     } else {
+        this.keyboard.up = true;
         this.keyboard.z = false;
     }
 

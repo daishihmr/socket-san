@@ -58,24 +58,44 @@ Unit.prototype.update = function(frame) {
     var cos = Math.cos((this.rotation-90)*Math.PI/180);
     var sin = Math.sin((this.rotation-90)*Math.PI/180);
     if (this.keyboard.up) {
-        this.velocity.x += cos*0.2;
-        this.velocity.y += sin*0.2;
+        this.velocity.x += cos*0.5;
+        this.velocity.y += sin*0.5;
     } else if (this.keyboard.down) {
-        this.velocity.x += cos*-0.05;
-        this.velocity.y += sin*-0.05;
+        this.velocity.x += cos*-0.5;
+        this.velocity.y += sin*-0.5;
     }
 
     if (this.keyboard.z && this.heat < 0) {
-        var dx = cos*40;
-        var dy = sin*40;
-        new bulletJs.Bullet({
-            x: this.x + dx,
-            y: this.y + dy,
-            dx: dx,
-            dy: dy,
-            owner: this
-        });
-        this.heat = 3;
+        if (this.type === "pc") {
+            var dx = cos * 40 + this.velocity.x;
+            var dy = sin * 40 + this.velocity.y;
+            new bulletJs.Bullet({
+                x: this.x + dx + Math.cos((this.rotation-90-90)*Math.PI/180)*20,
+                y: this.y + dy + Math.sin((this.rotation-90-90)*Math.PI/180)*20,
+                dx: dx,
+                dy: dy,
+                owner: this
+            });
+            new bulletJs.Bullet({
+                x: this.x + dx + Math.cos((this.rotation-90+90)*Math.PI/180)*20,
+                y: this.y + dy + Math.sin((this.rotation-90+90)*Math.PI/180)*20,
+                dx: dx,
+                dy: dy,
+                owner: this
+            });
+            this.heat = 6;
+        } else {
+            var dx = cos * 40 + this.velocity.x;
+            var dy = sin * 40 + this.velocity.y;
+            new bulletJs.Bullet({
+                x: this.x + dx,
+                y: this.y + dy,
+                dx: dx,
+                dy: dy,
+                owner: this
+            });
+            this.heat = 4;
+        }
     }
 
     this.x += this.velocity.x;

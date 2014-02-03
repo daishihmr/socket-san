@@ -13,20 +13,25 @@ tm.main(function() {
     app.fps = 30;
 
     var viewport = tm.app.Object2D().addChildTo(app.currentScene);
+    viewport.scaleX = 0.6;
+    viewport.scaleY = 0.6;
     viewport.update = function() {
-        var dx = (-myUnit.x + app.width/2 - this.x);
-        var dy = (-myUnit.y + app.height/2 - this.y);
+        var targetX = myUnit.x + Math.cos((myUnit.rotation-90)*Math.DEG_TO_RAD)*300;
+        var targetY = myUnit.y + Math.sin((myUnit.rotation-90)*Math.DEG_TO_RAD)*300;
+        var dx = (-targetX*this.scaleX + app.width/2 - this.x);
+        var dy = (-targetY*this.scaleY + app.height/2 - this.y);
         if (dx < -SC_SIZE*0.5 || SC_SIZE*0.5 < dx) {
             this.x += dx;
         } else {
-            this.x += dx * 0.1;
+            this.x += dx * 0.2;
         }
         if (dy < -SC_SIZE*0.5 || SC_SIZE*0.5 < dy) {
             this.y += dy;
         } else {
-            this.y += dy * 0.1;
+            this.y += dy * 0.2;
         }
     };
+    new Lock().addChildTo(viewport);
 
     var stars0 = Array.range(0, 20).map(function() {
         return {
@@ -401,5 +406,32 @@ tm.define("Explosion", {
         .call(function() {
             this.remove();
         }.bind(this));
+    }
+});
+
+tm.define("Lock", {
+    superClass: "tm.display.CanvasElement",
+
+    nears: null,
+
+    init: function() {
+        this.superInit();
+    },
+
+    update: function() {
+        this.nears = [];
+        for (var id in units) if (units.hasOwnProperty(id)) {
+            if (id !== window.id && tm.geom.Vector2.distanceSquared(myUnit, units[id]) < 2000*2000) {
+                this.nears.push(units[id]);
+            }
+        }
+    },
+
+    draw: function(canvas) {
+        canvas.strokeStyle = "white";
+        canvas.lineWidth = 0.5;
+        this.nears.forEach(function(unit) {
+            canvas.drawLine(myUnit.x, myUnit.y, unit.x, unit.y);
+        });
     }
 });
