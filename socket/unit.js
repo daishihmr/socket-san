@@ -1,6 +1,4 @@
 var worldJs = require("./world");
-var SC_SIZE = worldJs.SC_SIZE;
-
 var bulletJs = require("./bullet");
 
 var units = [];
@@ -167,4 +165,3 @@ exports.pcUnitNumber = function() {
     }
     return pc;
 };
-

@@ -123,6 +123,7 @@ tm.main(function() {
     });
 
     var bullets = new Bullets().addChildTo(viewport);
+    var rocks = [];
 
     socket.on("tick", function(allData) {
         allData.units.forEach(function(unit) {
@@ -133,7 +134,16 @@ tm.main(function() {
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
             target.hp = unit.hp;
         });
+
         bullets.data = allData.bullets;
+        
+        console.log(allData.rocks.length);
+        allData.rocks.forEach(function(rock, i) {
+            if (rocks[i] === undefined) {
+                rocks[i] = new Rock(rock.x, rock.y, rock.radius).addChildTo(viewport);
+            }
+        });
+
         allData.explosions.forEach(function(explosion) {
             new Explosion(explosion.x, explosion.y, explosion.size).addChildTo(viewport);
         });
@@ -435,3 +445,36 @@ tm.define("Lock", {
         });
     }
 });
+
+tm.define("Rock", {
+    superClass: "tm.display.CanvasElement",
+
+    points: null,
+
+    init: function(x, y, radius) {
+        this.superInit();
+
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+
+        this.points = [];
+        for (var i = 0; i < 10; i++) {
+            var a = Math.PI*2 * i / 10;
+            this.points.push(Math.cos(a) * radius * Math.randf(0.8, 1.2));
+            this.points.push(Math.sin(a) * radius * Math.randf(0.8, 1.2));
+        }
+        this.points.push(this.points[0]);
+        this.points.push(this.points[1]);
+    },
+
+    update: function() {
+
+    },
+
+    draw: function(canvas) {
+        canvas.strokeStyle = "white";
+        canvas.lineWidth = 5;
+        canvas.strokeLines.apply(canvas, this.points);
+    }
+})

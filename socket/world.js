@@ -1,6 +1,7 @@
 var unitJs = require("./unit");
 var bulletJs = require("./bullet");
 var aiunitJs = require("./aiunit");
+var rockJs = require("./rock");
 
 var SC_SIZE = 20000;
 
@@ -25,10 +26,15 @@ var updateWorld = function() {
     copiedBullets.forEach(function(bullet) {
         bullet.update(frame);
     });
+    var copiedRocks = [].concat(rockJs.rocks);
+    copiedRocks.forEach(function(rock) {
+        rock.update(frame);
+    });
 
     var allData = {
         units: unitJs.units.map(unitJs.Unit.publish),
         bullets: bulletJs.bullets.map(bulletJs.Bullet.publish),
+        rocks: rockJs.rocks.map(rockJs.Rock.publish),
         explosions: explosions,
         death: death
     };
@@ -56,4 +62,6 @@ exports.world = function(socket) {
         unitData.type = "pc";
         new unitJs.Unit().initialize(socket, unitData);
     });
+
+    rockJs.init();
 };
