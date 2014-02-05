@@ -16,9 +16,13 @@ Rock.prototype.update = function(frame) {
     var copiedUnits = [].concat(unitJs.units);
     copiedUnits.forEach(function(unit) {
         if ((unit.x - this.x)*(unit.x - this.x) + (unit.y - this.y)*(unit.y - this.y) < (this.radius+40)*(this.radius+40)) {
-            console.log("unit hit rock!");
-            unit.velocity.x *= -1;
-            unit.velocity.y *= -1;
+            var a = Math.atan2(unit.y - this.y, unit.x - this.x);
+            unit.x = this.x + Math.cos(a) * (this.radius + 20);
+            unit.y = this.y + Math.sin(a) * (this.radius + 20);
+
+            var s = Math.sqrt((unit.velocity.x*unit.velocity.x) + (unit.velocity.y*unit.velocity.y));
+            unit.velocity.x += Math.cos(a) * s*0.3;
+            unit.velocity.y += Math.sin(a) * s*0.3;
             unit.x += unit.velocity.x;
             unit.y += unit.velocity.y;
         }
@@ -27,7 +31,6 @@ Rock.prototype.update = function(frame) {
     var copiedBullets = [].concat(bulletJs.bullets);
     copiedBullets.forEach(function(bullet) {
         if ((bullet.x - this.x)*(bullet.x - this.x) + (bullet.y - this.y)*(bullet.y - this.y) < (this.radius+20)*(this.radius+20)) {
-            console.log("bullet hit rock!");
             bullet.remove();
         }
     }.bind(this));
