@@ -62,6 +62,8 @@ exports.world = function(socket) {
         unitData.type = "pc";
         new unitJs.Unit().initialize(socket, unitData);
     });
+};
 
+exports.init = function() {
     rockJs.init();
 };

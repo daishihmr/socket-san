@@ -42,3 +42,4 @@ server.listen(app.get('port'), function(){
 
 var io = socketIO.listen(server, {'log level': 2});
 io.on('connection', world.world);
+world.init();

@@ -1,3 +1,5 @@
+var SERVER_URL = "/";
+
 var SC_SIZE = 20000;
 
 var app;
@@ -108,7 +110,7 @@ tm.main(function() {
     myUnit = new MyUnit();
     myUnit.addChildTo(viewport);
 
-    socket = io.connect("/");
+    socket = io.connect(SERVER_URL);
     socket.on("connect", function() {
         console.log("onconnect");
         this.emit("join", {
