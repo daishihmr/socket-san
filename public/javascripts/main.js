@@ -5,8 +5,31 @@ var SC_SIZE = 20000;
 var app;
 var socket;
 var myUnit;
-var units = {};
 var score = 0;
+
+var viewport = null;
+var viewTarget = {
+    x: SC_SIZE/2,
+    y: SC_SIZE/2,
+    rotation: 0,
+    isSpace: true
+};
+
+var units = {};
+unitsLength = function() {
+    var i = 0;
+    for (var key in this) if (this.hasOwnProperty(key)) {
+        i++;
+    }
+    return i;
+}.bind(units);
+unitsPickup = function() {
+    var keys = [];
+    for (var key in this) if (this.hasOwnProperty(key)) {
+        keys.push(key);
+    }
+    return this[keys.pickup()];
+}.bind(units);
 
 tm.main(function() {
     app = tm.display.CanvasApp("#app");
@@ -14,12 +37,25 @@ tm.main(function() {
     app.background = "rgba(0, 0, 0, 0.3)";
     app.fps = 30;
 
-    var viewport = tm.app.Object2D().addChildTo(app.currentScene);
+    viewport = tm.app.Object2D().addChildTo(app.currentScene);
     viewport.scaleX = 0.6;
     viewport.scaleY = 0.6;
     viewport.update = function() {
-        var targetX = myUnit.x + Math.cos((myUnit.rotation-90)*Math.DEG_TO_RAD)*300;
-        var targetY = myUnit.y + Math.sin((myUnit.rotation-90)*Math.DEG_TO_RAD)*300;
+        if (myUnit) {
+            viewTarget = myUnit;
+        } else if (viewTarget.isSpace === true && unitsLength() > 0) {
+            viewTarget = unitsPickup();
+            viewTarget.on("removed", function() {
+                viewTarget = {
+                    x: SC_SIZE/2,
+                    y: SC_SIZE/2,
+                    rotation: 0,
+                    isSpace: true
+                };
+            });
+        }
+        var targetX = viewTarget.x + Math.cos((viewTarget.rotation-90)*Math.DEG_TO_RAD)*300;
+        var targetY = viewTarget.y + Math.sin((viewTarget.rotation-90)*Math.DEG_TO_RAD)*300;
         var dx = (-targetX*this.scaleX + app.width/2 - this.x);
         var dy = (-targetY*this.scaleY + app.height/2 - this.y);
         if (dx < -SC_SIZE*0.5 || SC_SIZE*0.5 < dx) {
@@ -107,18 +143,10 @@ tm.main(function() {
         this.text = pc + "人が参加中 + " + npc + "機のNPC";
     };
 
-    myUnit = new MyUnit();
-    myUnit.addChildTo(viewport);
-
     socket = io.connect(SERVER_URL);
+    socket.emit("hello");
     socket.on("connect", function() {
         console.log("onconnect");
-        this.emit("join", {
-            id: window.id,
-            x: myUnit.x,
-            y: myUnit.y,
-            rotation: myUnit.rotation
-        });
     });
     socket.on("disconnect", function(data) {
         console.log("disconnect");
@@ -139,7 +167,6 @@ tm.main(function() {
 
         bullets.data = allData.bullets;
         
-        console.log(allData.rocks.length);
         allData.rocks.forEach(function(rock, i) {
             if (rocks[i] === undefined) {
                 rocks[i] = new Rock(rock.x, rock.y, rock.radius).addChildTo(viewport);
@@ -197,16 +224,32 @@ tm.main(function() {
 
     app.run();
 
-    var lbl;
-    lbl = tm.display.Label("カーソルキーで移動", 48).setPosition(app.width/2, app.height/2-200).addChildTo(app.currentScene);
-    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+    var joinButton = tm.ui.GlossyButton(180, 50, "blue", "Join to Game").setPosition(app.width/2, app.height/2).addChildTo(app.currentScene);
+    joinButton.onclick = function() {
+        this.remove();
+        joinToGame();
+        var lbl;
+        lbl = tm.display.Label("カーソルキーで移動", 48).setPosition(app.width/2, app.height/2-200).addChildTo(app.currentScene);
+        lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
 
-    lbl = tm.display.Label("スペースキーで攻撃", 48).setPosition(app.width/2, app.height/2).addChildTo(app.currentScene);
-    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+        lbl = tm.display.Label("スペースキーで攻撃", 48).setPosition(app.width/2, app.height/2).addChildTo(app.currentScene);
+        lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
 
-    lbl = tm.display.Label("ESCキーで終了", 48).setPosition(app.width/2, app.height/2+200).addChildTo(app.currentScene);
-    lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+        lbl = tm.display.Label("ESCキーで終了", 48).setPosition(app.width/2, app.height/2+200).addChildTo(app.currentScene);
+        lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
+    };
 });
+
+var joinToGame = function() {
+    myUnit = new MyUnit();
+    myUnit.addChildTo(viewport);
+    socket.emit("join", {
+        id: window.id,
+        x: myUnit.x,
+        y: myUnit.y,
+        rotation: myUnit.rotation
+    });
+};
 
 var gameover = function() {
     tm.display.Label("GAME OVER", 48)
@@ -364,6 +407,8 @@ tm.define("Lader", {
     },
 
     draw: function(canvas) {
+        if (viewTarget == null) return;
+
         canvas.fillStyle = "hsla(220, 50%, 50%, 0.2)";
         canvas.lineWidth = 1;
 
@@ -374,10 +419,10 @@ tm.define("Lader", {
             canvas.drawLine(0, 0, Math.cos(this.lineAngle+i*0.05)*100, Math.sin(this.lineAngle+i*0.05)*100);
         }
 
-        var rx = Math.max(-100, -myUnit.x * 100/LADER_RADIUS_MAX);
-        var ry = Math.max(-100, -myUnit.y * 100/LADER_RADIUS_MAX);
-        var rw = Math.min(100-rx, ((SC_SIZE - myUnit.x) * 100/LADER_RADIUS_MAX) - rx);
-        var rh = Math.min(100-ry, ((SC_SIZE - myUnit.y) * 100/LADER_RADIUS_MAX) - ry);
+        var rx = Math.max(-100, -viewTarget.x * 100/LADER_RADIUS_MAX);
+        var ry = Math.max(-100, -viewTarget.y * 100/LADER_RADIUS_MAX);
+        var rw = Math.min(100-rx, ((SC_SIZE - viewTarget.x) * 100/LADER_RADIUS_MAX) - rx);
+        var rh = Math.min(100-ry, ((SC_SIZE - viewTarget.y) * 100/LADER_RADIUS_MAX) - ry);
         canvas.strokeStyle = "white";
         canvas.strokeRect(rx, ry, rw, rh);
         canvas.strokeRect(-100, -100, 200, 200);
@@ -385,8 +430,8 @@ tm.define("Lader", {
         for (var id in units) if (units.hasOwnProperty(id)) {
             var u = units[id];
             canvas.fillStyle = u.id === window.id ? "aqua" : "red";
-            if ((myUnit.x-u.x)*(myUnit.x-u.x) + (myUnit.y-u.y)*(myUnit.y-u.y) < this.radius*this.radius) {
-                canvas.fillRect((u.x-myUnit.x) * 100 / this.radius - 2, (u.y-myUnit.y) * 100 / this.radius - 2, 4, 4);
+            if ((viewTarget.x-u.x)*(viewTarget.x-u.x) + (viewTarget.y-u.y)*(viewTarget.y-u.y) < this.radius*this.radius) {
+                canvas.fillRect((u.x-viewTarget.x) * 100 / this.radius - 2, (u.y-viewTarget.y) * 100 / this.radius - 2, 4, 4);
             }
         }
     }
@@ -431,6 +476,8 @@ tm.define("Lock", {
     },
 
     update: function() {
+        if (!myUnit) return;
+
         this.nears = [];
         for (var id in units) if (units.hasOwnProperty(id)) {
             if (id !== window.id && tm.geom.Vector2.distanceSquared(myUnit, units[id]) < 2000*2000) {
@@ -440,6 +487,8 @@ tm.define("Lock", {
     },
 
     draw: function(canvas) {
+        if (!myUnit) return;
+
         canvas.strokeStyle = "white";
         canvas.lineWidth = 0.5;
         this.nears.forEach(function(unit) {

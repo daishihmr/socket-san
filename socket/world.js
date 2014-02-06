@@ -3,6 +3,8 @@ var bulletJs = require("./bullet");
 var aiunitJs = require("./aiunit");
 var rockJs = require("./rock");
 
+var audience = [];
+
 var SC_SIZE = 20000;
 
 var explosions = [];
@@ -41,6 +43,9 @@ var updateWorld = function() {
     unitJs.units.forEach(function(unit) {
         unit.socket.emit('tick', allData);
     });
+    audience.forEach(function(socket) {
+        socket.emit('tick', allData);
+    });
 
     explosions.splice(0);
     death.splice(0);
@@ -60,7 +65,13 @@ exports.world = function(socket) {
     socket.on('join', function(unitData) {
         console.log('join ' + unitData.id);
         unitData.type = "pc";
+        var idx = audience.indexOf(socket);
+        if (idx != -1) audience.splice(idx, 1);
         new unitJs.Unit().initialize(socket, unitData);
+    });
+    socket.on('hello', function() {
+        console.log("hello");
+        audience.push(socket);
     });
 };
 
