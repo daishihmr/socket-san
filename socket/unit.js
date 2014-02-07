@@ -125,12 +125,17 @@ Unit.prototype.damage = function(bullet) {
     worldJs.explosions.push({
         x: bullet.x,
         y: bullet.y,
-        size: this.hp > 0 ? 200: 800
+        size: 200
     });
     if (this.hp <= 0) {
         this.socket.emit('death');
         var idx = units.indexOf(this);
         if (idx !== -1) units.splice(idx, 1);
+        worldJs.explosions.push({
+            x: this.x,
+            y: this.y,
+            size: 1000
+        });
         worldJs.death.push({
             id: this.id
         });

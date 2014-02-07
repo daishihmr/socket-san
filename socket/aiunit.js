@@ -50,52 +50,52 @@ AIUnit.prototype.update = function(frame) {
         this.keyboard.left = false;
         this.keyboard.right = false;
         this.keyboard.z = false;
-        return;
-    }
+    } else {
 
-    var target = null;
-    var tarDist = -1;
-    for (var i = 0; i < unitJs.units.length; i++) {
-        var unit = unitJs.units[i];
-        if (unit.type == "npc") continue;
+        var target = null;
+        var tarDist = -1;
+        for (var i = 0; i < unitJs.units.length; i++) {
+            var unit = unitJs.units[i];
+            if (unit.type == "npc") continue;
 
-        var dist = (this.x-unit.x)*(this.x-unit.x) + (this.y-unit.y)*(this.y-unit.y);
-        if (dist < tarDist || tarDist === -1) {
-            tarDist = dist;
-            target = unit;
+            var dist = (this.x-unit.x)*(this.x-unit.x) + (this.y-unit.y)*(this.y-unit.y);
+            if (dist < tarDist || tarDist === -1) {
+                tarDist = dist;
+                target = unit;
+            }
         }
-    }
 
-    if (target == null) return;
+        if (target == null) return;
 
-    var r = (Math.atan2(target.y - this.y, target.x - this.x) * 180 / Math.PI) + 90;
-    switch (this.aiPersonality) {
-    case 1:
-        if (tarDist > 2000*2000) r += 15;
-        break;
-    case 2:
-        if (tarDist > 2000*2000) r -= 15;
-        break;
-    } 
-    var d = r - this.rotation;
-    while(d < -180) d += 360;
-    while(180 <= d) d -= 360;
+        var r = (Math.atan2(target.y - this.y, target.x - this.x) * 180 / Math.PI) + 90;
+        switch (this.aiPersonality) {
+        case 1:
+            if (tarDist > 2000*2000) r += 15;
+            break;
+        case 2:
+            if (tarDist > 2000*2000) r -= 15;
+            break;
+        } 
+        var d = r - this.rotation;
+        while(d < -180) d += 360;
+        while(180 <= d) d -= 360;
 
-    if (d < 0) {
-        this.keyboard.left = true;
-        this.keyboard.right = false;
-    } else {
-        this.keyboard.left = false;
-        this.keyboard.right = true;
-    }
+        if (d < 0) {
+            this.keyboard.left = true;
+            this.keyboard.right = false;
+        } else {
+            this.keyboard.left = false;
+            this.keyboard.right = true;
+        }
 
-    var shotStartDistance = this.aiPersonality === 0 ? 800 : 2000;
-    if (tarDist < shotStartDistance*shotStartDistance && Math.floor(this.age/11) % 10 === 0) {
-        this.keyboard.up = frame%2 === 0;
-        this.keyboard.z = true;
-    } else {
-        this.keyboard.up = true;
-        this.keyboard.z = false;
+        var shotStartDistance = this.aiPersonality === 0 ? 800 : 2000;
+        if (tarDist < shotStartDistance*shotStartDistance && Math.floor(this.age/11) % 10 === 0) {
+            this.keyboard.up = frame%2 === 0;
+            this.keyboard.z = true;
+        } else {
+            this.keyboard.up = true;
+            this.keyboard.z = false;
+        }
     }
 
     unitJs.Unit.prototype.update.call(this, frame);

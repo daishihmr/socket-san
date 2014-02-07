@@ -6,6 +6,7 @@ var app;
 var socket;
 var myUnit;
 var score = 0;
+var rocks = [];
 
 var viewport = null;
 var viewTarget = {
@@ -34,7 +35,7 @@ unitsPickup = function() {
 tm.main(function() {
     app = tm.display.CanvasApp("#app");
     app.resize(1000, 1000).fitWindow();
-    app.background = "rgba(0, 0, 0, 0.3)";
+    app.background = "rgba(0, 0, 0, 0.5)";
     app.fps = 30;
 
     viewport = tm.app.Object2D().addChildTo(app.currentScene);
@@ -69,6 +70,15 @@ tm.main(function() {
             this.y += dy * 0.2;
         }
     };
+    viewport.draw = function(canvas) {
+        canvas.strokeStyle = "rgba(255,255,255,0.3)";
+        canvas.lineWidth = 10;
+        canvas.drawLine(0, 0, 0, SC_SIZE);
+        canvas.drawLine(0, 0, SC_SIZE, 0);
+        canvas.drawLine(0, SC_SIZE, SC_SIZE, SC_SIZE);
+        canvas.drawLine(SC_SIZE, 0, SC_SIZE, SC_SIZE);
+    };
+
     new Lock().addChildTo(viewport);
 
     var stars0 = Array.range(0, 20).map(function() {
@@ -131,7 +141,8 @@ tm.main(function() {
         .setAlign("left")
         .setBaseline("top")
         .setPosition(0, 0)
-        .setFillStyle("white")
+        .setFillStyle("rgba(255,255,255,0.4)")
+        .setBlendMode("lighter")
         .addChildTo(app.currentScene);
     playercount.update = function() {
         var pc = 0;
@@ -153,7 +164,6 @@ tm.main(function() {
     });
 
     var bullets = new Bullets().addChildTo(viewport);
-    var rocks = [];
 
     socket.on("tick", function(allData) {
         allData.units.forEach(function(unit) {
@@ -171,6 +181,7 @@ tm.main(function() {
             if (rocks[i] === undefined) {
                 rocks[i] = new Rock(rock.x, rock.y, rock.radius).addChildTo(viewport);
             }
+            rocks[i].setPosition(rock.x, rock.y);
         });
 
         allData.explosions.forEach(function(explosion) {
@@ -292,14 +303,14 @@ tm.define("Unit", {
 
         if (this.type == "pc") {
             this.scaleX = 0.6;
-            tm.display.TriangleShape(50, 50, {
-                strokeStyle: color || "hsl(20, 50%, 50%)",
+            tm.display.TriangleShape(90, 90, {
+                strokeStyle: color || "orange",
                 fillStyle: "transparent",
                 lineWidth: 5
             }).setBlendMode("lighter").addChildTo(this);
         } else {
             tm.display.RectangleShape(50, 50, {
-                strokeStyle: "hsl(0, 50%, 50%)",
+                strokeStyle: "red",
                 fillStyle: "transparent",
                 lineWidth: 5
             }).setBlendMode("lighter").addChildTo(this);
@@ -311,7 +322,7 @@ tm.define("Unit", {
         var hpRing = tm.display.CanvasElement().setBlendMode("lighter").addChildTo(this);
         if (this.type == "pc") hpRing.scaleX = 1/0.6;
         hpRing.draw = function(canvas) {
-            canvas.strokeStyle = "hsla(220, 80%, 80%, 0.5)";
+            canvas.strokeStyle = "hsl(220, 80%, 80%)";
             canvas.linecap = "round";
 
             canvas.lineWidth = 2;
@@ -337,7 +348,7 @@ tm.define("Unit", {
         f.v = tm.geom.Vector2().setAngle(this.rotation+90, 10);
         f.update = function() {
             this.position.add(this.v);
-            this.alpha *= 0.8;
+            this.alpha *= 0.95;
             if (this.alpha < 0.001) this.remove();
         }
     }
@@ -349,7 +360,7 @@ tm.define("MyUnit", {
     heat: 0,
 
     init: function() {
-        this.superInit(window.id, "pc", "hsl(220, 50%, 50%)");
+        this.superInit(window.id, "pc", "aqua");
         this.x = Math.random() * SC_SIZE;
         this.y = Math.random() * SC_SIZE;
         this.rotation = Math.random() * 360;
@@ -409,9 +420,10 @@ tm.define("Lader", {
     draw: function(canvas) {
         if (viewTarget == null) return;
 
-        canvas.fillStyle = "hsla(220, 50%, 50%, 0.2)";
         canvas.lineWidth = 1;
 
+        canvas.globalCompositeOperation = "lighter";
+        canvas.fillStyle = "rgba(255,255,255,0.1)";
         canvas.fillCircle(0, 0, this.radius * 100/LADER_RADIUS_MAX);
 
         for (var i = 0; i < 5; i++) {
@@ -429,11 +441,18 @@ tm.define("Lader", {
 
         for (var id in units) if (units.hasOwnProperty(id)) {
             var u = units[id];
-            canvas.fillStyle = u.id === window.id ? "aqua" : "red";
+            canvas.fillStyle = u.id === window.id ? "aqua" : (u.id.match(/^AI-/) ? "red" : "orange");
             if ((viewTarget.x-u.x)*(viewTarget.x-u.x) + (viewTarget.y-u.y)*(viewTarget.y-u.y) < this.radius*this.radius) {
                 canvas.fillRect((u.x-viewTarget.x) * 100 / this.radius - 2, (u.y-viewTarget.y) * 100 / this.radius - 2, 4, 4);
             }
         }
+
+        canvas.strokeStyle = "white";
+        rocks.forEach(function(r) {
+            if ((viewTarget.x-r.x)*(viewTarget.x-r.x) + (viewTarget.y-r.y)*(viewTarget.y-r.y) < this.radius*this.radius) {
+                canvas.strokeCircle((r.x-viewTarget.x) * 100 / this.radius, (r.y-viewTarget.y) * 100 / this.radius, r.radius * 100 / this.radius);
+            }
+        }.bind(this));
     }
 });
 
@@ -501,6 +520,7 @@ tm.define("Rock", {
     superClass: "tm.display.CanvasElement",
 
     points: null,
+    dr: 0,
 
     init: function(x, y, radius) {
         this.superInit();
@@ -508,6 +528,7 @@ tm.define("Rock", {
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.dr = Math.randf(-5, 5);
 
         this.points = [];
         for (var i = 0; i < 10; i++) {
@@ -520,7 +541,7 @@ tm.define("Rock", {
     },
 
     update: function() {
-
+        this.rotation += this.dr;
     },
 
     draw: function(canvas) {
@@ -528,4 +549,4 @@ tm.define("Rock", {
         canvas.lineWidth = 5;
         canvas.strokeLines.apply(canvas, this.points);
     }
-})
+});
