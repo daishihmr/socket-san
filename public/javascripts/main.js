@@ -5,7 +5,6 @@ var SC_SIZE = 20000;
 var app;
 var socket;
 var myUnit;
-var score = 0;
 var rocks = [];
 
 var viewport = null;
@@ -135,7 +134,7 @@ tm.main(function() {
         });
     };
 
-    var lader = new Lader().setPosition(app.width - 110, 110).addChildTo(app.currentScene);
+    var lader = new Rader().setPosition(app.width - 110, 110).addChildTo(app.currentScene);
 
     var playercount = tm.display.Label(" ", 40)
         .setAlign("left")
@@ -173,6 +172,7 @@ tm.main(function() {
             }
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
             target.hp = unit.hp;
+            target.star = unit.star;
         });
 
         bullets.data = allData.bullets;
@@ -196,9 +196,7 @@ tm.main(function() {
         });
     });
 
-    socket.on("kill", function() {
-        score += 1;
-    });
+    socket.on("kill", function() {});
 
     socket.on("hit", function() {
         var l = tm.display.Label("HIT!!", 100)
@@ -239,7 +237,9 @@ tm.main(function() {
     joinButton.onclick = function() {
         this.remove();
         joinToGame();
+
         var lbl;
+
         lbl = tm.display.Label("カーソルキーで移動", 48).setPosition(app.width/2, app.height/2-200).addChildTo(app.currentScene);
         lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
 
@@ -275,7 +275,7 @@ var gameover = function() {
             var resultScene = tm.app.ResultScene({
                 width: app.width,
                 height: app.height,
-                score: score*100,
+                score: myUnit.star*100,
                 msg: "ドッグファイト！ソケットさん",
                 url: window.location.origin,
                 hashtags: "dev7jp"
@@ -292,6 +292,9 @@ tm.define("Unit", {
 
     id: null,
     hp: 0,
+
+    star: 0,
+    stars: null,
 
     init: function(id, type, color) {
         this.superInit();
@@ -335,8 +338,18 @@ tm.define("Unit", {
             canvas.context.arc(0, 0, 60, Math.PI*-0.5, Math.PI*-0.5 + that.hp/10 * Math.PI*2, false);
             canvas.stroke();
         };
+
+        this.star = 0;
+        this.stars = [];
     },
 
+    onremoved: function() {
+        this.stars.forEach(function(star) {
+            star.remove();
+        });
+    },
+
+    beforeStar: 0,
     update: function() {
         var f = tm.display.RectangleShape(50*2, 50*2, {
             fillStyle: tm.graphics.RadialGradient(50, 50, 0, 50, 50, 50).addColorStopList([
@@ -351,6 +364,43 @@ tm.define("Unit", {
             this.alpha *= 0.95;
             if (this.alpha < 0.001) this.remove();
         }
+
+        if (this.beforeStar < this.star) {
+            this.addStar(this.star - this.beforeStar);
+        }
+
+        this.beforeStar = this.star;
+    },
+
+    addStar: function(v) {
+        while (v >= 1) {
+            var newStar = new Star(1, this.stars[this.stars.length - 1] || this);
+            this.stars.push(newStar);
+            v--;
+        }
+    }
+});
+
+tm.define("Star", {
+    superClass: "tm.display.StarShape",
+
+    target: null,
+    beforePositions: null,
+
+    init: function(size, target) {
+        this.superInit(50*size, 50*size, {});
+        this.target = target;
+        this.addChildTo(target.parent);
+
+        this.beforePositions = [];
+        for (var i = 0; i < 3; i++) {
+            this.beforePositions.push(target.position.clone());
+        }
+    },
+
+    update: function() {
+        this.beforePositions.push(this.target.position.clone());
+        this.position.setObject(this.beforePositions.shift());
     }
 });
 
@@ -402,7 +452,7 @@ tm.define("Bullets", {
 });
 
 var LADER_RADIUS_MAX = 7000;
-tm.define("Lader", {
+tm.define("Rader", {
     superClass: "tm.display.CanvasElement",
 
     radius: 7000,

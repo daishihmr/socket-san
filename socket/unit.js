@@ -20,6 +20,7 @@ Unit.prototype.initialize = function(socket, data) {
         y: 0
     };
     this.heat = 0;
+    this.star = 1;
 
     this.keyboard = {
         up: false,
@@ -142,6 +143,7 @@ Unit.prototype.damage = function(bullet) {
 
         for (var i = 0; i < units.length; i++) {
             if (units[i] === bullet.owner) {
+                if (units[i].type == "pc") units[i].star += this.star;
                 units[i].socket.emit('kill');
                 break;
             }
@@ -156,7 +158,8 @@ Unit.prototype.publish = function() {
         x: this.x,
         y: this.y,
         rotation: this.rotation,
-        hp: this.hp
+        hp: this.hp,
+        star: this.star
     };
 };
 Unit.publish = function(unit) { return unit.publish(); };
