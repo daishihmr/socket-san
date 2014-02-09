@@ -6,10 +6,10 @@ socket.ioを使用したリアルタイム通信対戦型全方位シューテ�
 install & run
 -------------
 
-~~~sh
+~~~shell
 $ npm install
 $ npm start
 ~~~
 
-http://localhost:3000
+open <http://localhost:3000>
 
