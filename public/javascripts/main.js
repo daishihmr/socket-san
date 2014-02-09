@@ -372,7 +372,7 @@ tm.define("Unit", {
 
     setupLabel: function() {
         var that = this;
-        var label = this.label = tm.display.Label(id, 40)
+        var label = this.label = tm.display.Label(this.id, 40)
             .setAlign("left")
             .setBaseline("top")
             .setFillStyle("white");
