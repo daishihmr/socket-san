@@ -70,7 +70,6 @@ exports.world = function(socket) {
         new unitJs.Unit().initialize(socket, unitData);
     });
     socket.on('hello', function() {
-        console.log("hello");
         audience.push(socket);
     });
 };

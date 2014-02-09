@@ -9,6 +9,7 @@
     "express": "3.4.7",
     "jade": "*",
     "socket.io": "~0.9.16",
-    "uuid": "~1.4.1"
+    "uuid": "~1.4.1",
+    "node-twitter-api": "~1.1.3"
   }
 }

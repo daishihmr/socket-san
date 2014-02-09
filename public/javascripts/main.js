@@ -168,7 +168,7 @@ tm.main(function() {
         allData.units.forEach(function(unit) {
             var target = units[unit.id];
             if (target === undefined) {
-                target = new Unit(unit.id, unit.type).addChildTo(viewport);
+                target = new Unit(unit).addChildTo(viewport);
             }
             target.setPosition(unit.x, unit.y).setRotation(unit.rotation);
             target.hp = unit.hp;
@@ -233,9 +233,11 @@ tm.main(function() {
 
     app.run();
 
-    var joinButton = tm.ui.GlossyButton(180, 50, "blue", "Join to Game").setPosition(app.width/2, app.height/2).addChildTo(app.currentScene);
+    var joinButton = tm.ui.GlossyButton(280, 50, "blue", "Join the Game").setPosition(app.width/2, app.height/2-100).addChildTo(app.currentScene);
     joinButton.onclick = function() {
         this.remove();
+        loginButton.remove();
+
         joinToGame();
 
         var lbl;
@@ -249,6 +251,25 @@ tm.main(function() {
         lbl = tm.display.Label("ESCキーで終了", 48).setPosition(app.width/2, app.height/2+200).addChildTo(app.currentScene);
         lbl.tweener.to({alpha:0}, 5000).call(function() { this.remove() }.bind(lbl));
     };
+
+    var loginButton;
+    if (window.user == null) {
+        loginButton = tm.ui.GlossyButton(280, 50, "blue", "Login with Twitter").setPosition(app.width/2, app.height/2+100).addChildTo(app.currentScene);
+        loginButton.onclick = function() {
+            this.remove();
+            joinButton.remove();
+            
+            window.location.href = "/login";
+        };
+    } else {
+        loginButton = tm.ui.GlossyButton(280, 50, "blue", "Logout").setPosition(app.width/2, app.height/2+100).addChildTo(app.currentScene);
+        loginButton.onclick = function() {
+            this.remove();
+            joinButton.remove();
+            
+            window.location.href = "/logout";
+        };
+    }
 });
 
 var joinToGame = function() {
@@ -256,6 +277,7 @@ var joinToGame = function() {
     myUnit.addChildTo(viewport);
     socket.emit("join", {
         id: window.id,
+        icon: window.user ? window.user.icon : null,
         x: myUnit.x,
         y: myUnit.y,
         rotation: myUnit.rotation
@@ -296,13 +318,16 @@ tm.define("Unit", {
     star: 0,
     stars: null,
 
-    init: function(id, type, color) {
+    label: null,
+
+    init: function(param, color) {
         this.superInit();
         this.blendMode = "lighter";
 
-        this.type = type;
-        this.id = id;
-        units[id] = this;
+        this.type = param.type;
+        this.id = param.id;
+        this.icon = param.icon;
+        units[this.id] = this;
 
         if (this.type == "pc") {
             this.scaleX = 0.6;
@@ -341,6 +366,31 @@ tm.define("Unit", {
 
         this.star = 0;
         this.stars = [];
+
+        if (this.type == "pc" && window.user) this.setupLabel();
+    },
+
+    setupLabel: function() {
+        var that = this;
+        var label = this.label = tm.display.Label(id, 40)
+            .setAlign("left")
+            .setBaseline("top")
+            .setFillStyle("white");
+        this.label.update = function() {
+            this.setPosition(that.x+120, that.y+60);
+        };
+        this.on("added", function() {
+            this.label.addChildTo(this.parent);
+        });
+
+        if (this.icon) {
+            var texture = tm.asset.Texture(this.icon);
+            texture.onload = function() {
+                tm.display.Sprite(this, 60, 60)
+                    .setPosition(-40, 20)
+                    .addChildTo(label);
+            };
+        }
     },
 
     onremoved: function() {
@@ -410,7 +460,11 @@ tm.define("MyUnit", {
     heat: 0,
 
     init: function() {
-        this.superInit(window.id, "pc", "aqua");
+        this.superInit({
+            id: window.id,
+            type: "pc",
+            icon: window.user ? window.user.icon : null
+        }, "aqua");
         this.x = Math.random() * SC_SIZE;
         this.y = Math.random() * SC_SIZE;
         this.rotation = Math.random() * 360;

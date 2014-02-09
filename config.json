@@ -1,0 +1,12 @@
+{
+    "core": {
+        "domain": "localhost:3000",
+        "adminUsers": [
+            "daishi_hmr"
+        ]
+    },
+    "twitter": {
+        "consumerKey": "uxFOwPCuFOOuST0CHxt1w",
+        "consumerSecret": "fX1noJXvWXgUcFQpeMNdj2gCMsCp3SEyoGMLQVUFatk"
+    }
+}
