@@ -7,3 +7,9 @@ block content
   script(src='/socket.io/socket.io.js')
   script(src='/javascripts/tmlib.js')
   script(src='/javascripts/main.js')
+  if (session.login)
+    script.
+      var user = {name:"#{session.user.name}",icon:"#{session.user.icon}"}
+  else
+    script.
+      var user = null;

@@ -12,6 +12,7 @@ Unit.prototype.initialize = function(socket, data) {
 
     this.type = data.type;
     this.id = data.id;
+    this.icon = data.icon;
     this.x = data.x;
     this.y = data.y;
     this.rotation = data.rotation;
@@ -60,8 +61,8 @@ Unit.prototype.update = function(frame) {
         this.velocity.x += cos*0.5;
         this.velocity.y += sin*0.5;
     } else if (this.keyboard.down) {
-        this.velocity.x += cos*-0.5;
-        this.velocity.y += sin*-0.5;
+        this.velocity.x += cos*-0.2;
+        this.velocity.y += sin*-0.2;
     }
 
     if (this.keyboard.z && this.heat < 0) {
@@ -155,6 +156,7 @@ Unit.prototype.publish = function() {
     return {
         type: this.type,
         id: this.id,
+        icon: this.icon,
         x: this.x,
         y: this.y,
         rotation: this.rotation,
