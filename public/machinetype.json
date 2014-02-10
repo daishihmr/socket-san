@@ -1,0 +1,74 @@
+{
+    "a": {
+        "name": "TYPE-A",
+        "hp": 10,
+        "accelForward": 0.5,
+        "accelBack": 0.2,
+        "angularSpeed": 5,
+        "shotType": "twin",
+        "shotPowar": 1,
+        "shotSpeed": 40,
+        "shotAge": 80,
+        "shotHeat": 6
+    },
+    "b": {
+        "name": "TYPE-B",
+        "hp": 10,
+        "accelForward": 0.4,
+        "accelBack": 0.4,
+        "angularSpeed": 3,
+        "shotType": "long",
+        "shotParam": {
+            "time": 10,
+            "width": 1
+        },
+        "shotPowar": 1,
+        "shotSpeed": 60,
+        "shotAge": 120,
+        "shotHeat": 100
+    },
+    "c": {
+        "name": "TYPE-C",
+        "hp": 10,
+        "accelForward": 0.5,
+        "accelBack": 0.2,
+        "angularSpeed": 5,
+        "shotType": "wide",
+        "shotParam": {
+            "way": 5,
+            "width": 60
+        },
+        "shotPowar": 1,
+        "shotSpeed": 30,
+        "shotAge": 40,
+        "shotHeat": 10
+    },
+    "d": {
+        "name": "TYPE-D",
+        "hp": 15,
+        "accelForward": 0.2,
+        "accelBack": 0.2,
+        "angularSpeed": 1,
+        "shotType": "long",
+        "shotParam": {
+            "time": 100,
+            "width": 120
+        },
+        "shotPowar": 1,
+        "shotSpeed": 80,
+        "shotAge": 400,
+        "shotHeat": 600
+    },
+    "z": {
+        "name": "TYPE-Z",
+        "hp": 10,
+        "accelForward": 0.5,
+        "accelBack": 0.2,
+        "angularSpeed": 5,
+        "shotType": "single",
+        "shotPowar": 1,
+        "shotSpeed": 40,
+        "shotAge": 80,
+        "shotHeat": 4
+    }
+}

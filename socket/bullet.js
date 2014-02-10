@@ -8,7 +8,8 @@ var Bullet = function(data) {
     this.y = data.y;
     this.dx = data.dx;
     this.dy = data.dy;
-    this.age = 80;
+    this.age = data.ageLimit;
+    this.power = data.power;
 
     bullets.push(this);
 };

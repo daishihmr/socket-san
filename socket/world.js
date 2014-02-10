@@ -63,7 +63,7 @@ exports.explosions = explosions;
 exports.death = death;
 exports.world = function(socket) {
     socket.on('join', function(unitData) {
-        console.log('join ' + unitData.id);
+        console.log('join ' + unitData.id, "mt = " + unitData.machineType);
         unitData.type = "pc";
         var idx = audience.indexOf(socket);
         if (idx != -1) audience.splice(idx, 1);

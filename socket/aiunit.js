@@ -27,6 +27,7 @@ AIUnit.prototype = new unitJs.Unit();
 
 AIUnit.prototype.initialize = function() {
     unitJs.Unit.prototype.initialize.call(this, new DummySocket(), {
+        machineType: "z",
         type: "npc",
         id: "AI-" + count++,
         x: Math.random() * worldJs.SC_SIZE,
