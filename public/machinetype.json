@@ -56,7 +56,7 @@
         },
         "shotPowar": 1,
         "shotSpeed": 80,
-        "shotAge": 400,
+        "shotAge": 200,
         "shotHeat": 600
     },
     "z": {

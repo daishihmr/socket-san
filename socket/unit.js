@@ -75,20 +75,22 @@ Unit.prototype.update = function(frame) {
         this.keyboard.right = false;
         this.keyboard.z = false;
         if (this.shotType == "long") {
-            var dx = cos * this.shotSpeed;
-            var dy = sin * this.shotSpeed;
-            this.velocity.x += cos*-0.3;
-            this.velocity.y += sin*-0.3;
-            for (var i = -this.shotParam.width/2; i <= this.shotParam.width/2; i+=20) {
-                new bulletJs.Bullet({
-                    x: this.x + dx + Math.cos((this.rotation-90-90)*Math.PI/180) * i,
-                    y: this.y + dy + Math.sin((this.rotation-90-90)*Math.PI/180) * i,
-                    dx: dx,
-                    dy: dy,
-                    owner: this,
-                    ageLimit: this.shotAge,
-                    power: this.shotPowar
-                });
+            if (frame % 2 === 0) {
+                var dx = cos * this.shotSpeed;
+                var dy = sin * this.shotSpeed;
+                this.velocity.x += cos*-0.3;
+                this.velocity.y += sin*-0.3;
+                for (var i = -this.shotParam.width/2; i <= this.shotParam.width/2; i+=20) {
+                    new bulletJs.Bullet({
+                        x: this.x + dx + Math.cos((this.rotation-90-90)*Math.PI/180) * i,
+                        y: this.y + dy + Math.sin((this.rotation-90-90)*Math.PI/180) * i,
+                        dx: dx,
+                        dy: dy,
+                        owner: this,
+                        ageLimit: this.shotAge,
+                        power: this.shotPowar
+                    });
+                }
             }
         }
 
